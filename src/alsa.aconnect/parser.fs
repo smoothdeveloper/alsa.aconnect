@@ -1,8 +1,8 @@
 ﻿namespace alsa.aconnect
 
 type AlsaClientPortConnection =
-  | From of clientId: int * portId: int
-  | To of clientId: int * portId: int
+  | From of clientId: int * portId: int * attributes: (string * string) array
+  | To of clientId: int * portId: int * attributes: (string * string) array
   
 type AlsaClientPort =
   {
@@ -28,9 +28,13 @@ module parser =
     tuple2 
       (many1Satisfy (fun c -> c <> '=' && c <> ',' && not (System.Char.IsWhiteSpace(c))) .>> str "=")
       (many1Satisfy (fun c -> c <> ',' && c <> ']') .>> ws)
-
+  let internal connectionAttribute<'a> =
+    tuple2
+      (many1Satisfy (fun c -> c <> ':' && not (System.Char.IsWhiteSpace c)) .>> str ":")
+      (many1Satisfy (fun c -> c <> ',' && c <> ']') .>> ws)
+      
   let internal attributes<'a> = between (str "[") (str "]") (sepBy attribute (str ","))
-
+  let internal connectionAttributes<'a> = between (str "[") (str "]") (sepBy connectionAttribute (str ":"))
   let internal clientLine<'a> =
     pipe4
       (ws >>. str "client" >>. ws >>. pint32 .>> str ":" .>> ws)
@@ -57,14 +61,15 @@ module parser =
           connections = [||]
         }
             
-  let internal connectionLine connectionType = 
+  let internal connectionLine connectionType =
+    
     (ws >>. str connectionType >>. ws >>. (str "To:" <|> str "From:")) .>> ws  
     >>= fun connectType -> 
-      pint32 .>> str ":" .>>. pint32 
-      |>> fun (toClientId, toPortId) -> 
+      pint32 .>> str ":" .>>. pint32 .>>. (opt connectionAttributes |>> function Some a -> a | None -> []) 
+      |>> fun ((toClientId, toPortId), attributes) -> 
         match connectType with 
-        | "To:" -> To(toClientId, toPortId)
-        | "From:" -> From(toClientId, toPortId)
+        | "To:" -> To(toClientId, toPortId, attributes |> List.toArray)
+        | "From:" -> From(toClientId, toPortId, attributes |> List.toArray)
         | _ -> failwith "Unknown connection type"
 
   let internal portEntries =
@@ -73,7 +78,7 @@ module parser =
       >>= fun port ->
         many(
           choice [
-            attempt (connectionLine "Connecting" )
+            attempt (connectionLine "Connecting")
             attempt (connectionLine "Connected")
           ]
         )

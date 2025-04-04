@@ -110,12 +110,12 @@ client 133: 'WebMIDI input' [type=user,pid=2938]
       { id = 16
         label = "Virtual Raw MIDI 0-0"
         attributes = [|("type", "kernel"); ("card", "0")|]
-        ports = [|{ id = 0; label = "VirMIDI 0-0"; connections = [|To (129, 0)|] }|]
+        ports = [|{ id = 0; label = "VirMIDI 0-0"; connections = [|To (129, 0, [||])|] }|]
       }
       { id = 17
         label = "Virtual Raw MIDI 0-1"
         attributes = [|("type", "kernel"); ("card", "0")|]
-        ports = [|{ id = 0; label = "VirMIDI 0-1"; connections = [|To (129, 1)|] }|] }
+        ports = [|{ id = 0; label = "VirMIDI 0-1"; connections = [|To (129, 1, [||])|] }|] }
       { id = 18
         label = "Virtual Raw MIDI 0-2"
         attributes = [|("type", "kernel"); ("card", "0")|]
@@ -123,7 +123,7 @@ client 133: 'WebMIDI input' [type=user,pid=2938]
       { id = 19
         label = "Virtual Raw MIDI 0-3"
         attributes = [|("type", "kernel"); ("card", "0")|]
-        ports = [|{ id = 0; label = "VirMIDI 0-3"; connections = [|To (129, 2)|] }|] }
+        ports = [|{ id = 0; label = "VirMIDI 0-3"; connections = [|To (129, 2, [||])|] }|] }
       { id = 20
         label = "Scarlett 18i20 USB"
         attributes = [|("type", "kernel"); ("card", "1")|]
@@ -131,11 +131,11 @@ client 133: 'WebMIDI input' [type=user,pid=2938]
       { id = 32
         label = "SireneMIDI"
         attributes = [|("type", "kernel"); ("card", "4")|]
-        ports = [|{ id = 0; label = "SireneMIDI MIDI IN"; connections = [|From (129, 4)|] }|] }
+        ports = [|{ id = 0; label = "SireneMIDI MIDI IN"; connections = [|From (129, 4, [||])|] }|] }
       { id = 36
         label = "FS-1-WL USB-MIDI"
         attributes = [|("type", "kernel"); ("card", "5")|]
-        ports = [|{ id = 0; label = "FS-1-WL USB-MIDI MIDI 1"; connections = [|To (129, 3)|] }|] }
+        ports = [|{ id = 0; label = "FS-1-WL USB-MIDI MIDI 1"; connections = [|To (129, 3, [||])|] }|] }
       { id = 128
         label = "Client-128"
         attributes = [|("type", "user"); ("pid", "1727")|]
@@ -145,11 +145,11 @@ client 133: 'WebMIDI input' [type=user,pid=2938]
         attributes = [|("type", "user"); ("pid", "2067")|]
         ports =
          [|
-           { id = 0; label = "Pure Data Midi-In 1"; connections = [|From (16, 0)|] }
-           { id = 1; label = "Pure Data Midi-In 2"; connections = [|From (17, 0)|] }
-           { id = 2; label = "Pure Data Midi-In 3"; connections = [|From (19, 0)|] }
-           { id = 3; label = "Pure Data Midi-In 4"; connections = [|From (36, 0)|] }
-           { id = 4; label = "Pure Data Midi-Out 1"; connections = [|To (32, 0)|] }
+           { id = 0; label = "Pure Data Midi-In 1"; connections = [|From (16, 0, [||])|] }
+           { id = 1; label = "Pure Data Midi-In 2"; connections = [|From (17, 0, [||])|] }
+           { id = 2; label = "Pure Data Midi-In 3"; connections = [|From (19, 0, [||])|] }
+           { id = 3; label = "Pure Data Midi-In 4"; connections = [|From (36, 0, [||])|] }
+           { id = 4; label = "Pure Data Midi-Out 1"; connections = [|To (32, 0, [||])|] }
            { id = 5; label = "Pure Data Midi-Out 2"; connections = [||] }
            { id = 6; label = "Pure Data Midi-Out 3"; connections = [||] }
            { id = 7; label = "Pure Data Midi-Out 4"; connections = [||] }
@@ -176,3 +176,60 @@ client 133: 'WebMIDI input' [type=user,pid=2938]
     |]
   
   Assert.That(actual, Is.EqualTo(expected : obj))
+
+
+let [<Test>] parseAnotherCase () =
+  let input = """client 0: 'System' [type=kernel]
+    0 'Timer           '
+    1 'Announce        '
+client 14: 'Midi Through' [type=kernel]
+    0 'Midi Through Port-0'
+client 16: 'Virtual Raw MIDI 0-0' [type=kernel,card=0]
+    0 'VirMIDI 0-0     '
+    Connecting To: 131:0
+client 17: 'Virtual Raw MIDI 0-1' [type=kernel,card=0]
+    0 'VirMIDI 0-1     '
+client 18: 'Virtual Raw MIDI 0-2' [type=kernel,card=0]
+    0 'VirMIDI 0-2     '
+client 19: 'Virtual Raw MIDI 0-3' [type=kernel,card=0]
+    0 'VirMIDI 0-3     '
+client 20: 'SireneMIDI' [type=kernel,card=1]
+    0 'SireneMIDI MIDI IN'
+client 24: 'Scarlett 18i20 USB' [type=kernel,card=2]
+    0 'Scarlett 18i20 USB MIDI 1'
+client 128: 'rtpmidi sirenateur' [type=user,pid=752]
+    0 'Network         '
+    1 'SIRENIUM        '
+client 129: 'Client-129' [type=user,pid=1682]
+    0 'Virtual RawMIDI '
+client 130: 'Pure Data' [type=user,pid=2072]
+    0 'Pure Data Midi-In 1'
+    Connected From: 132:0[real:0]
+    1 'Pure Data Midi-In 2'
+    2 'Pure Data Midi-In 3'
+    3 'Pure Data Midi-In 4'
+    4 'Pure Data Midi-Out 1'
+    5 'Pure Data Midi-Out 2'
+    6 'Pure Data Midi-Out 3'
+    7 'Pure Data Midi-Out 4'
+    8 'Pure Data Midi-Out 5'
+client 131: 'WebMIDI input' [type=user,pid=2648]
+    0 'Input connection'
+    Connected From: 16:0
+client 132: 'WebMIDI output' [type=user,pid=2648]
+    0 'Output connection'
+    Connecting To: 130:0[real:0]
+"""
+  
+  let actual =
+    match parser.parse input with
+    | Ok(clients) -> clients
+    | Error(result, error) -> failwith $"{result} {error}"
+   
+  let puredataClient = actual |> Array.tryFind (fun c -> c.label = "Pure Data")
+  let expectedPureDataClientPort0 =
+    {id=0;label="Pure Data Midi-In 1";connections=[|From(132,0,[|"real","0"|])|]}
+  
+  Assert.That(puredataClient.Value.ports.Length, Is.EqualTo 9)
+  Assert.That(puredataClient.Value.ports[0], Is.EqualTo expectedPureDataClientPort0)
+  
